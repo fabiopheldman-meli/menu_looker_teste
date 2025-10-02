@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Menu + Relatório Looker (Embed)</title>
+  <title>Menu (com Filtros) + Looker embed</title>
   <style>
     :root {
       --sidebar-w: 260px;
@@ -22,7 +22,7 @@
     .app {
       display: grid;
       grid-template-columns: var(--sidebar-w) 1fr;
-      height: 100dvh; /* ocupa a altura da janela */
+      height: 100dvh;
       transition: grid-template-columns .25s ease;
       overflow: hidden;
     }
@@ -37,7 +37,8 @@
     .brand { display: flex; align-items: center; gap: 8px; font-weight: 700; }
     .brand .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--accent); display: inline-block; }
     .toggle { background: #1f2937; border: 0; color: var(--fg); padding: 8px 10px; border-radius: 10px; cursor: pointer; width: 100%; }
-    .hint { font-size: 12px; color: var(--muted); }
+    .hint { font-size: 12px; color: #9ca3af; }
+
     .menu { display: grid; gap: 4px; margin-top: 4px; }
     .menu a, .menu button.item {
       display: grid; grid-template-columns: 28px 1fr 20px;
@@ -50,10 +51,20 @@
     .icon { text-align: center; font-size: 18px; }
     .label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .caret { opacity: .6; }
+
     .submenu { display: none; padding-left: 36px; }
-    .submenu a { grid-template-columns: 20px 1fr 0; font-size: 14px; color: #d1d5db; }
-    .submenu a:hover { color: #fff; background: #243244; }
-    .item[aria-expanded="true"] + .submenu { display: grid; gap: 2px; margin-bottom: 4px; }
+    .submenu .row { display: flex; align-items: center; gap: 8px; padding: 6px 6px; border-radius: 8px; }
+    .submenu .row:hover { background: #1f2434; }
+    .submenu input[type="radio"] { accent-color: #22c55e; }
+
+    .submenu .actions { margin-top: 10px; display: flex; gap: 8px; }
+    .btn {
+      background: #22c55e; color: #06110b; border: 0; padding: 8px 12px; border-radius: 10px; cursor: pointer; font-weight: 600;
+    }
+    .btn.secondary { background: #1f2937; color: #e5e7eb; }
+
+    .item[aria-expanded="true"] + .submenu { display: block; margin-bottom: 4px; }
+
     .app.collapsed .label, .app.collapsed .caret, .app.collapsed .submenu { display: none !important; }
     .app.collapsed .menu { gap: 8px; }
     .app.collapsed .menu a, .app.collapsed .menu button.item { grid-template-columns: 1fr; justify-items: center; }
@@ -64,65 +75,74 @@
       overflow: hidden;
       background: #0b1020;
     }
-    /* iframe do Looker ocupa toda a área de conteúdo */
     .report-frame {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
       border: 0;
+      background: #0b1020;
     }
-
-    /* opcional: faixa superior para título ou filtros futuros
-    .header { padding: 10px 14px; border-bottom: 1px solid var(--border); }
-    .header h1 { font-size: 14px; margin: 0; color: #dbeafe; }
-    .stage-body { position: absolute; inset: 42px 0 0 0; }
-    */
+    small.note { color: #9ca3af; display: block; margin-top: 6px; }
   </style>
 </head>
 <body>
   <div id="app" class="app">
     <aside class="sidebar" role="navigation" aria-label="Menu lateral">
       <div class="brand"><span class="dot"></span> <span class="label">Menu</span></div>
+
       <button class="toggle" type="button" onclick="toggleSidebar()" aria-expanded="true">
         ☰ <span class="label">Colapsar/Expandir</span>
       </button>
+
       <div class="hint"><span class="label">Submenus expansíveis</span></div>
 
       <nav class="menu">
         <a href="#home"><span class="icon">🏠</span><span class="label">Home</span><span class="caret"></span></a>
 
-        <button class="item" type="button" aria-expanded="false" aria-controls="sub-kpis" onclick="toggleSub(this, 'sub-kpis')">
-          <span class="icon">📈</span><span class="label">KPIs</span><span class="caret">▾</span>
+        <!-- ====== Filtros (expansível) ====== -->
+        <button class="item" type="button" aria-expanded="true" aria-controls="sub-filtros" onclick="toggleSub(this, 'sub-filtros')">
+          <span class="icon">🔎</span><span class="label">Filtros</span><span class="caret">▾</span>
         </button>
-        <div id="sub-kpis" class="submenu" role="region" aria-label="KPIs">
-          <a href="#kpi-vendas"><span class="icon">•</span><span class="label">Vendas</span></a>
-          <a href="#kpi-marketing"><span class="icon">•</span><span class="label">Marketing</span></a>
-          <a href="#kpi-operacoes"><span class="icon">•</span><span class="label">Operações</span></a>
-        </div>
+        <div id="sub-filtros" class="submenu" role="region" aria-label="Filtros">
+          <!-- Seleção única -->
+          <label class="row">
+            <input type="radio" name="filtro-nome" value="FABIO AMARAL">
+            <span class="label">FABIO AMARAL</span>
+          </label>
+          <label class="row">
+            <input type="radio" name="filtro-nome" value="GABRIEL SOUZA">
+            <span class="label">GABRIEL SOUZA</span>
+          </label>
+          <label class="row">
+            <input type="radio" name="filtro-nome" value="MARCELO ALFREDO">
+            <span class="label">MARCELO ALFREDO</span>
+          </label>
+          <label class="row">
+            <input type="radio" name="filtro-nome" value="ROMULO SALLA">
+            <span class="label">ROMULO SALLA</span>
+          </label>
+          <label class="row">
+            <input type="radio" name="filtro-nome" value="TAINA SANTORO">
+            <span class="label">TAINA SANTORO</span>
+          </label>
 
-        <button class="item" type="button" aria-expanded="false" aria-controls="sub-rel" onclick="toggleSub(this, 'sub-rel')">
-          <span class="icon">📊</span><span class="label">Relatórios</span><span class="caret">▾</span>
-        </button>
-        <div id="sub-rel" class="submenu" role="region" aria-label="Relatórios">
-          <a href="#mensal"><span class="icon">•</span><span class="label">Mensal</span></a>
-          <a href="#trimestral"><span class="icon">•</span><span class="label">Trimestral</span></a>
-          <a href="#anual"><span class="icon">•</span><span class="label">Anual</span></a>
+          <div class="actions">
+            <button class="btn" type="button" onclick="aplicarFiltro()">Filtrar</button>
+            <button class="btn secondary" type="button" onclick="limparFiltro()">Limpar</button>
+          </div>
+          <small class="note">O botão envia o nome selecionado como parâmetro de URL para o relatório embedado.</small>
+          <small class="note">Parâmetro utilizado: <code>param_responsaveis</code></small>
         </div>
+        <!-- ====== /Filtros ====== -->
 
-        <a href="#config"><span class="icon">⚙️</span><span class="label">Configurações</span><span class="caret"></span></a>
       </nav>
     </aside>
 
     <section class="stage" aria-label="Área do relatório">
-      <!-- Seu relatório Looker Studio embutido -->
       <iframe
+        id="reportFrame"
         class="report-frame"
-        width="600"
-        height="450"
         src="https://lookerstudio.google.com/embed/reporting/05f69128-cdfd-4e58-b570-1a6a54a25830/page/p_t2y528t7ud"
         frameborder="0"
-        style="border:0"
         allowfullscreen
         sandbox="allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox">
       </iframe>
@@ -130,15 +150,55 @@
   </div>
 
   <script>
+    // ===== CONFIGURAÇÃO =====
+    // ID do parâmetro definido no seu relatório Looker Studio:
+    const PARAM_NAME = "param_responsaveis";
+
+    // URL base do embed (sem ?params=...)
+    const BASE_EMBED_URL = "https://lookerstudio.google.com/embed/reporting/05f69128-cdfd-4e58-b570-1a6a54a25830/page/p_t2y528t7ud";
+    // =========================
+
     function toggleSidebar() {
       const app = document.getElementById('app');
       const btn = document.querySelector('.toggle');
       const isCollapsed = app.classList.toggle('collapsed');
       btn.setAttribute('aria-expanded', String(!isCollapsed));
     }
+
     function toggleSub(el, id) {
       const expanded = el.getAttribute('aria-expanded') === 'true';
       el.setAttribute('aria-expanded', String(!expanded));
+      const sub = document.getElementById(id);
+      if (sub) sub.style.display = expanded ? 'none' : 'block';
+    }
+
+    function getNomeSelecionado() {
+      const sel = document.querySelector('input[name="filtro-nome"]:checked');
+      return sel ? sel.value : null;
+    }
+
+    function buildEmbedUrl(base, paramsObj) {
+      const url = new URL(base);
+      url.searchParams.set('params', JSON.stringify(paramsObj));
+      return url.toString();
+    }
+
+    function aplicarFiltro() {
+      const nome = getNomeSelecionado();
+      const iframe = document.getElementById('reportFrame');
+      if (!nome) {
+        alert('Selecione um nome para filtrar.');
+        return;
+      }
+      const paramsObj = {};
+      paramsObj[PARAM_NAME] = nome;
+      iframe.src = buildEmbedUrl(BASE_EMBED_URL, paramsObj);
+    }
+
+    function limparFiltro() {
+      document.querySelectorAll('input[name="filtro-nome"]').forEach(r => r.checked = false);
+      const iframe = document.getElementById('reportFrame');
+      iframe.src = BASE_EMBED_URL;
     }
   </script>
 </body>
