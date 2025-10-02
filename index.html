@@ -3,23 +3,36 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Gestão Training BI</title>
+  <title>Gestão Training BI — Menu + Looker (Responsivo + Filtro padrão)</title>
   <style>
     :root{
-      --sidebar-w: 280px;
-      --sidebar-w-collapsed: 76px;
+      /* LARGURAS RESPONSIVAS (escala bem em telas grandes e pequenas) */
+      --sidebar-w: clamp(260px, 22vw, 360px);
+      --sidebar-w-collapsed: clamp(64px, 7vw, 96px);
+
+      /* TIPOGRAFIA RESPONSIVA */
+      --fs-body: clamp(14px, 1.05vw, 16px);
+      --fs-small: clamp(12px, 0.9vw, 14px);
+      --fs-icon: clamp(18px, 1.4vw, 20px);
+
+      /* CORES */
       --ink: 229 231 235;   /* #e5e7eb */
       --muted: 148 163 184; /* #94a3b8 */
       --accent: 34 197 94;  /* #22c55e */
       --stroke: 31 41 55;   /* #1f2937 */
       --bg: 12 16 32;       /* #0b1020 */
     }
+
     *{ box-sizing: border-box }
     html,body{ height:100%; margin:0 }
     body{
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Arial;
       color: rgb(var(--ink));
       background: rgb(var(--bg));
+      font-size: var(--fs-body);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
     }
 
     /* ===== Layout ===== */
@@ -32,7 +45,7 @@
     }
     .app.collapsed{ grid-template-columns: var(--sidebar-w-collapsed) 1fr }
 
-    /* ===== Sidebar (glass + shadow) ===== */
+    /* ===== Sidebar ===== */
     .sidebar{
       padding:16px 12px;
       display:flex; flex-direction:column; gap:14px;
@@ -42,9 +55,7 @@
       -webkit-backdrop-filter: blur(10px) saturate(140%);
       box-shadow: 0 10px 30px rgb(0 0 0 / .25);
     }
-    .brand{
-      display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.2px
-    }
+    .brand{ display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.2px }
     .brand .title{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
 
     .toggle{
@@ -70,12 +81,12 @@
     .menu a:hover, .menu button.item:hover{ background: rgb(31 41 55 / .6) }
     .menu a:active, .menu button.item:active{ transform: scale(.985) }
     .menu a:focus-visible, .menu button.item:focus-visible{ outline: 2px solid rgb(var(--accent)); outline-offset: 2px }
-    .icon{ text-align:center; font-size:18px }
+    .icon{ text-align:center; font-size: var(--fs-icon) }
     .label{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
     .caret{ opacity:.7; transition: transform .28s cubic-bezier(.2,.8,.2,1) }
     .item[aria-expanded="true"] .caret{ transform: rotate(180deg) }
 
-    /* ===== Accordion "Apple-like" ===== */
+    /* ===== Accordion ===== */
     .submenu{
       overflow: hidden;
       height: 0;                 /* fechado por padrão; abriremos via JS */
@@ -84,7 +95,7 @@
       padding-left: 18px;
       will-change: height;
     }
-    /* indentação extra para níveis aninhados */
+    /* Subnível (para "Responsáveis" dentro de "Filtros") */
     .submenu .submenu{
       margin-left: 12px;
       border-left-style: solid;
@@ -115,6 +126,7 @@
       background: rgb(var(--accent)); color:#06110b;
       box-shadow: 0 6px 14px rgb(34 197 94 / .22);
       transition: transform .12s ease, filter .2s ease;
+      font-size: var(--fs-body);
     }
     .btn:hover{ filter: brightness(1.05) }
     .btn:active{ transform: translateY(1px) }
@@ -135,7 +147,13 @@
     /* Loading overlay (UX) */
     .loading{
       position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
-      background: rgba(0,0,0,.25); backdrop-filter: blur(2px); font-weight:700; letter-spacing:.2px;
+      background: rgba(0,0,0,.25); backdrop-filter: blur(2px);
+      font-weight:700; letter-spacing:.2px; font-size: var(--fs-body);
+    }
+
+    /* Melhor legibilidade em telas muito largas */
+    @media (min-width: 1920px){
+      .menu a, .menu button.item{ padding:12px }
     }
 
     @media (prefers-reduced-motion: reduce){
@@ -151,7 +169,7 @@
       </div>
 
       <button class="toggle" type="button" onclick="toggleSidebar(this)" aria-expanded="true">
-        ☰ <span class="label">Recolher/Expandir</span>
+        ☰ <span class="label">Colapsar/Expandir</span>
       </button>
 
       <nav class="menu">
@@ -191,7 +209,8 @@
           <div id="sub-filtros-resp" class="submenu" role="region" aria-label="Responsáveis">
             <fieldset style="border:0; padding:0; margin:0">
               <legend class="sr-only" style="position:absolute;left:-9999px">Responsáveis</legend>
-              <label class="row"><input type="radio" name="filtro-nome" value="FABIO AMARAL"><span class="label">FABIO AMARAL</span></label>
+              <!-- PRÉ-SELECIONADO: FABIO AMARAL -->
+              <label class="row"><input type="radio" name="filtro-nome" value="FABIO AMARAL" checked><span class="label">FABIO AMARAL</span></label>
               <label class="row"><input type="radio" name="filtro-nome" value="GABRIEL SOUZA"><span class="label">GABRIEL SOUZA</span></label>
               <label class="row"><input type="radio" name="filtro-nome" value="MARCELO ALFREDO"><span class="label">MARCELO ALFREDO</span></label>
               <label class="row"><input type="radio" name="filtro-nome" value="ROMULO SALLA"><span class="label">ROMULO SALLA</span></label>
@@ -203,17 +222,18 @@
             </div>
           </div>
 
-          <!-- Futuramente, adicione novos subitens aqui (ex.: Período, Região, etc.) -->
+          <!-- Futuramente: adicione novos subitens (Período, Região, etc.) -->
         </div>
       </nav>
     </aside>
 
     <section class="stage" aria-label="Área do relatório">
       <div id="loading" class="loading">Carregando…</div>
+      <!-- INÍCIO JÁ FILTRADO EM 'FABIO AMARAL' -->
       <iframe
         id="reportFrame"
         class="report-frame"
-        src="https://lookerstudio.google.com/embed/reporting/05f69128-cdfd-4e58-b570-1a6a54a25830/page/p_ronkgricwd"
+        src="https://lookerstudio.google.com/embed/reporting/05f69128-cdfd-4e58-b570-1a6a54a25830/page/p_ronkgricwd?params=%7B%22ds56.param_responsaveis%22%3A%5B%22FABIO%20AMARAL%22%5D%7D"
         frameborder="0"
         allowfullscreen
         sandbox="allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox">
@@ -225,7 +245,8 @@
     /* ============ CONFIG ============ */
     const PARAM_NAME = "ds56.param_responsaveis";
     const BASE_EMBED_URL = "https://lookerstudio.google.com/embed/reporting/05f69128-cdfd-4e58-b570-1a6a54a25830/page/p_ronkgricwd";
-    const SEND_AS_ARRAY = true; // mantém padrão consistente
+    const SEND_AS_ARRAY = true;
+    const DEFAULT_NAME = "FABIO AMARAL"; // pré-selecionado e aplicado no load
     /* ================================= */
 
     const SPRING_EASE = 'cubic-bezier(.34,1.56,.64,1)';
@@ -286,7 +307,6 @@
       };
     }
 
-    // Abrir um painel manualmente (sem animação)
     function openAccordion(panelId, headerSelector){
       const panel = document.getElementById(panelId);
       const header = document.querySelector(headerSelector);
@@ -322,11 +342,16 @@
 
     function limparFiltro(){
       document.querySelectorAll('input[name="filtro-nome"]').forEach(r => r.checked = false);
+      // opcional: reverter para o padrão (DEFAULT_NAME) ao limpar
       const iframe = document.getElementById('reportFrame');
-      iframe.src = BASE_EMBED_URL;
+      const value = SEND_AS_ARRAY ? [DEFAULT_NAME] : DEFAULT_NAME;
+      const paramsObj = { [PARAM_NAME]: value };
+      iframe.src = buildEmbedUrl(BASE_EMBED_URL, paramsObj);
+      // também marca o rádio padrão
+      const radio = document.querySelector(`input[name="filtro-nome"][value="${CSS.escape(DEFAULT_NAME)}"]`);
+      if (radio) radio.checked = true;
     }
 
-    // Boas práticas: overlay de loading + sincronizar UI com o params atual do iframe
     function syncUIFromIframe(){
       const iframe = document.getElementById('reportFrame');
       try{
@@ -343,13 +368,13 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-      // abrir todos os accordions (Daily, Reports, Filtros e o subitem Responsáveis)
+      // abrir todos os accordions
       openAccordion('sub-daily',   'button[aria-controls="sub-daily"]');
       openAccordion('sub-reports', 'button[aria-controls="sub-reports"]');
       openAccordion('sub-filtros', 'button[aria-controls="sub-filtros"]');
       openAccordion('sub-filtros-resp', 'button[aria-controls="sub-filtros-resp"]');
 
-      // loading overlay control
+      // overlay de loading + sincronização do rádio com o parâmetro atual
       const iframe = document.getElementById('reportFrame');
       const loading = document.getElementById('loading');
       iframe.addEventListener('load', () => {
@@ -357,8 +382,9 @@
         syncUIFromIframe();
       });
 
-      // se a página carregar com params já presentes no src:
-      syncUIFromIframe();
+      // garante que o rádio padrão esteja marcado (fallback)
+      const radio = document.querySelector(`input[name="filtro-nome"][value="${CSS.escape(DEFAULT_NAME)}"]`);
+      if (radio) radio.checked = true;
     });
   </script>
 </body>
