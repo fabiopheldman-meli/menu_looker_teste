@@ -130,7 +130,7 @@
             <button class="btn secondary" type="button" onclick="limparFiltro()">Limpar</button>
           </div>
           <small class="note">O botão envia o nome selecionado como parâmetro de URL para o relatório embedado.</small>
-          <small class="note">Parâmetro utilizado: <code>param_responsaveis</code></small>
+          <small class="note">Parâmetro utilizado: <code>ds56.param_responsaveis</code> (enviado como array, ex.: <code>["FABIO AMARAL"]</code>).</small>
         </div>
         <!-- ====== /Filtros ====== -->
 
@@ -151,8 +151,8 @@
 
   <script>
     // ===== CONFIGURAÇÃO =====
-    // ID do parâmetro definido no seu relatório Looker Studio:
-    const PARAM_NAME = "param_responsaveis";
+    // Nome do parâmetro criado no Looker Studio (como no seu exemplo de formato):
+    const PARAM_NAME = "ds56.param_responsaveis";
 
     // URL base do embed (sem ?params=...)
     const BASE_EMBED_URL = "https://lookerstudio.google.com/embed/reporting/05f69128-cdfd-4e58-b570-1a6a54a25830/page/p_ronkgricwd";
@@ -178,6 +178,7 @@
     }
 
     function buildEmbedUrl(base, paramsObj) {
+      // monta params como JSON e injeta em ?params=
       const url = new URL(base);
       url.searchParams.set('params', JSON.stringify(paramsObj));
       return url.toString();
@@ -190,8 +191,11 @@
         alert('Selecione um nome para filtrar.');
         return;
       }
+      // Envia como ARRAY, para ficar no mesmo padrão do exemplo dado:
+      // {"ds56.param_responsaveis":["FABIO AMARAL"]}
       const paramsObj = {};
-      paramsObj[PARAM_NAME] = nome;
+      paramsObj[PARAM_NAME] = [nome];
+
       iframe.src = buildEmbedUrl(BASE_EMBED_URL, paramsObj);
     }
 
