@@ -3,136 +3,159 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Menu (com Filtros) + Looker embed</title>
+  <title>Menu (Filtros com “efeito Apple”) + Looker embed</title>
   <style>
-    :root {
-      --sidebar-w: 260px;
-      --sidebar-w-collapsed: 72px;
-      --bg: #0f172a;
-      --bg-2: #111827;
-      --fg: #e5e7eb;
-      --muted: #9ca3af;
-      --accent: #22c55e;
-      --border: #1f2937;
+    :root{
+      --sidebar-w: 280px;
+      --sidebar-w-collapsed: 76px;
+      --bg: 12 16 32;       /* #0b1020 */
+      --ink: 229 231 235;   /* #e5e7eb */
+      --muted: 148 163 184; /* #94a3b8 */
+      --accent: 34 197 94;  /* #22c55e */
+      --stroke: 31 41 55;   /* #1f2937 */
     }
-    * { box-sizing: border-box; }
-    html, body { height: 100%; margin: 0; }
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Arial; background: #0b1020; color: var(--fg); }
+    *{ box-sizing: border-box }
+    html,body{ height:100%; margin:0 }
+    body{
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Arial;
+      color: rgb(var(--ink));
+      background: rgb(11 16 32);
+    }
 
-    .app {
-      display: grid;
+    /* ----- LAYOUT -------------------------------------------------------- */
+    .app{
+      display:grid;
       grid-template-columns: var(--sidebar-w) 1fr;
       height: 100dvh;
-      transition: grid-template-columns .25s ease;
+      transition: grid-template-columns .28s cubic-bezier(.2,.8,.2,1);
       overflow: hidden;
     }
-    .app.collapsed { grid-template-columns: var(--sidebar-w-collapsed) 1fr; }
+    .app.collapsed{ grid-template-columns: var(--sidebar-w-collapsed) 1fr }
 
-    .sidebar {
-      background: linear-gradient(180deg, var(--bg), var(--bg-2));
-      border-right: 1px solid var(--border);
-      padding: 16px 12px;
-      display: flex; flex-direction: column; gap: 10px;
+    /* ----- SIDEBAR (vidro + elevação sutil) ----------------------------- */
+    .sidebar{
+      padding:16px 12px;
+      display:flex; flex-direction:column; gap:12px;
+      border-right:1px solid rgb(var(--stroke)/.6);
+      background: linear-gradient(180deg, rgb(15 23 42/.55), rgb(17 24 39/.55));
+      backdrop-filter: blur(10px) saturate(140%);
+      -webkit-backdrop-filter: blur(10px) saturate(140%);
+      box-shadow: 0 10px 30px rgb(0 0 0 / .25);
     }
-    .brand { display: flex; align-items: center; gap: 8px; font-weight: 700; }
-    .brand .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--accent); display: inline-block; }
-    .toggle { background: #1f2937; border: 0; color: var(--fg); padding: 8px 10px; border-radius: 10px; cursor: pointer; width: 100%; }
-    .hint { font-size: 12px; color: #9ca3af; }
+    .brand{ display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.2px }
+    .dot{ width:12px; height:12px; border-radius:999px; background: rgb(var(--accent)) }
 
-    .menu { display: grid; gap: 4px; margin-top: 4px; }
-    .menu a, .menu button.item {
-      display: grid; grid-template-columns: 28px 1fr 20px;
-      align-items: center; gap: 8px;
-      background: transparent; color: var(--fg);
-      text-decoration: none; border: 0;
-      padding: 10px 10px; border-radius: 10px; cursor: pointer;
+    .toggle{
+      width:100%; border:0; cursor:pointer;
+      padding:10px 12px; border-radius:12px;
+      color: rgb(var(--ink));
+      background: rgb(31 41 55 / .85);
+      transition: transform .14s ease, background .25s ease, box-shadow .25s ease;
+      box-shadow: 0 6px 14px rgb(0 0 0 / .18) inset, 0 1px 0 rgb(255 255 255 / .05);
     }
-    .menu a:hover, .menu button.item:hover { background: #1f2937; }
-    .icon { text-align: center; font-size: 18px; }
-    .label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .caret { opacity: .6; }
+    .toggle:hover{ background: rgb(40 50 70 / .9) }
+    .toggle:active{ transform: scale(.985) }
 
-    .submenu { display: none; padding-left: 36px; }
-    .submenu .row { display: flex; align-items: center; gap: 8px; padding: 6px 6px; border-radius: 8px; }
-    .submenu .row:hover { background: #1f2434; }
-    .submenu input[type="radio"] { accent-color: #22c55e; }
+    .hint{ font-size:12px; color: rgb(var(--muted)) }
 
-    .submenu .actions { margin-top: 10px; display: flex; gap: 8px; }
-    .btn {
-      background: #22c55e; color: #06110b; border: 0; padding: 8px 12px; border-radius: 10px; cursor: pointer; font-weight: 600;
+    /* ----- MENU ITEMS ---------------------------------------------------- */
+    .menu{ display:grid; gap:6px; margin-top:2px }
+    .menu a, .menu button.item{
+      display:grid; grid-template-columns: 28px 1fr 22px; align-items:center; gap:10px;
+      padding:10px 10px; border-radius:12px; border:0; cursor:pointer;
+      background: transparent; color: rgb(var(--ink)); text-decoration:none;
+      transition: background .2s ease, transform .12s ease;
     }
-    .btn.secondary { background: #1f2937; color: #e5e7eb; }
+    .menu a:hover, .menu button.item:hover{ background: rgb(31 41 55 / .6) }
+    .menu a:active, .menu button.item:active{ transform: scale(.985) }
+    .icon{ text-align:center; font-size:18px }
+    .label{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+    .caret{ opacity:.7; transition: transform .28s cubic-bezier(.2,.8,.2,1) }
 
-    .item[aria-expanded="true"] + .submenu { display: block; margin-bottom: 4px; }
-
-    .app.collapsed .label, .app.collapsed .caret, .app.collapsed .submenu { display: none !important; }
-    .app.collapsed .menu { gap: 8px; }
-    .app.collapsed .menu a, .app.collapsed .menu button.item { grid-template-columns: 1fr; justify-items: center; }
-
-    .stage {
-      position: relative;
-      height: 100%;
+    /* ----- ACCORDION (Apple-like) --------------------------------------- */
+    .submenu{
       overflow: hidden;
-      background: #0b1020;
+      height: 0;            /* fechado por padrão */
+      border-left: 1px dashed rgb(var(--stroke)/.6);
+      margin-left: 14px;
+      padding-left: 18px;
+      will-change: height;
     }
-    .report-frame {
-      position: absolute; inset: 0;
-      width: 100%; height: 100%;
-      border: 0;
-      background: #0b1020;
+    .row{
+      display:flex; align-items:center; gap:10px;
+      padding:8px 6px; border-radius:10px;
+      transform: translateY(-6px);
+      opacity:0;
     }
-    small.note { color: #9ca3af; display: block; margin-top: 6px; }
+    .row:hover{ background: rgb(30 41 59 / .55) }
+    .submenu input[type="radio"]{ accent-color: rgb(var(--accent)) }
+
+    .actions{ display:flex; gap:8px; margin:8px 0 12px }
+    .btn{
+      border:0; cursor:pointer; font-weight:700;
+      padding:9px 12px; border-radius:12px;
+      background: rgb(var(--accent)); color:#06110b;
+      box-shadow: 0 6px 14px rgb(34 197 94 / .22);
+      transition: transform .12s ease, filter .2s ease;
+    }
+    .btn:hover{ filter: brightness(1.05) }
+    .btn:active{ transform: translateY(1px) }
+    .btn.secondary{ background: rgb(31 41 55); color: rgb(var(--ink)); box-shadow:none }
+
+    /* Estado visual do cabeçalho do accordion */
+    .item[aria-expanded="true"] .caret{ transform: rotate(180deg) }
+
+    /* Colapso global */
+    .app.collapsed .label,
+    .app.collapsed .caret,
+    .app.collapsed .submenu{ display:none !important }
+    .app.collapsed .menu{ gap:10px }
+    .app.collapsed .menu a, .app.collapsed .menu button.item{ grid-template-columns:1fr; justify-items:center }
+
+    /* ----- STAGE (relatório) ------------------------------------------- */
+    .stage{ position:relative; height:100%; background: rgb(var(--bg)) }
+    .report-frame{ position:absolute; inset:0; width:100%; height:100%; border:0; background: rgb(var(--bg)) }
+
+    /* Acessibilidade: reduzir movimento */
+    @media (prefers-reduced-motion: reduce){
+      .caret, .toggle, .menu a, .menu button.item{ transition:none }
+    }
+    small.note{ color: rgb(var(--muted)); display:block; margin-top:6px }
   </style>
 </head>
 <body>
   <div id="app" class="app">
     <aside class="sidebar" role="navigation" aria-label="Menu lateral">
-      <div class="brand"><span class="dot"></span> <span class="label">Menu</span></div>
+      <div class="brand"><span class="dot"></span><span class="label">Menu</span></div>
 
-      <button class="toggle" type="button" onclick="toggleSidebar()" aria-expanded="true">
+      <button class="toggle" type="button" onclick="toggleSidebar(this)" aria-expanded="true">
         ☰ <span class="label">Colapsar/Expandir</span>
       </button>
 
-      <div class="hint"><span class="label">Submenus expansíveis</span></div>
+      <div class="hint"><span class="label">Filtros com animação suave</span></div>
 
       <nav class="menu">
         <a href="#home"><span class="icon">🏠</span><span class="label">Home</span><span class="caret"></span></a>
 
-        <!-- ====== Filtros (expansível) ====== -->
-        <button class="item" type="button" aria-expanded="true" aria-controls="sub-filtros" onclick="toggleSub(this, 'sub-filtros')">
+        <!-- ====== Filtro (Accordion) ====== -->
+        <button class="item" type="button" aria-expanded="false" aria-controls="sub-filtros" onclick="toggleAccordion(this, 'sub-filtros')">
           <span class="icon">🔎</span><span class="label">Filtros</span><span class="caret">▾</span>
         </button>
+
         <div id="sub-filtros" class="submenu" role="region" aria-label="Filtros">
-          <!-- Seleção única -->
-          <label class="row">
-            <input type="radio" name="filtro-nome" value="FABIO AMARAL">
-            <span class="label">FABIO AMARAL</span>
-          </label>
-          <label class="row">
-            <input type="radio" name="filtro-nome" value="GABRIEL SOUZA">
-            <span class="label">GABRIEL SOUZA</span>
-          </label>
-          <label class="row">
-            <input type="radio" name="filtro-nome" value="MARCELO ALFREDO">
-            <span class="label">MARCELO ALFREDO</span>
-          </label>
-          <label class="row">
-            <input type="radio" name="filtro-nome" value="ROMULO SALLA">
-            <span class="label">ROMULO SALLA</span>
-          </label>
-          <label class="row">
-            <input type="radio" name="filtro-nome" value="TAINA SANTORO">
-            <span class="label">TAINA SANTORO</span>
-          </label>
+          <label class="row"><input type="radio" name="filtro-nome" value="FABIO AMARAL"><span class="label">FABIO AMARAL</span></label>
+          <label class="row"><input type="radio" name="filtro-nome" value="GABRIEL SOUZA"><span class="label">GABRIEL SOUZA</span></label>
+          <label class="row"><input type="radio" name="filtro-nome" value="MARCELO ALFREDO"><span class="label">MARCELO ALFREDO</span></label>
+          <label class="row"><input type="radio" name="filtro-nome" value="ROMULO SALLA"><span class="label">ROMULO SALLA</span></label>
+          <label class="row"><input type="radio" name="filtro-nome" value="TAINA SANTORO"><span class="label">TAINA SANTORO</span></label>
 
           <div class="actions">
             <button class="btn" type="button" onclick="aplicarFiltro()">Filtrar</button>
             <button class="btn secondary" type="button" onclick="limparFiltro()">Limpar</button>
           </div>
-          <small class="note">O botão envia o nome selecionado como parâmetro de URL para o relatório embedado.</small>
-          <small class="note">Parâmetro utilizado: <code>ds56.param_responsaveis</code> (enviado como array, ex.: <code>["FABIO AMARAL"]</code>).</small>
+          <small class="note">Envia para o embed: <code>ds56.param_responsaveis</code> como array (ex.: <code>["FABIO AMARAL"]</code>).</small>
         </div>
-        <!-- ====== /Filtros ====== -->
+        <!-- ====== /Filtro ====== -->
 
       </nav>
     </aside>
@@ -150,56 +173,104 @@
   </div>
 
   <script>
-    // ===== CONFIGURAÇÃO =====
-    // Nome do parâmetro criado no Looker Studio (como no seu exemplo de formato):
+    /* ================== CONFIG ================== */
     const PARAM_NAME = "ds56.param_responsaveis";
-
-    // URL base do embed (sem ?params=...)
     const BASE_EMBED_URL = "https://lookerstudio.google.com/embed/reporting/05f69128-cdfd-4e58-b570-1a6a54a25830/page/p_ronkgricwd";
-    // =========================
+    const SEND_AS_ARRAY = true; // mantém o padrão do seu exemplo
+    /* ============================================ */
 
-    function toggleSidebar() {
+    // Apple-like accordion: anima altura + “reveal” dos itens com leve elasticidade
+    const SPRING_EASE = 'cubic-bezier(.34,1.56,.64,1)';     // leve overshoot
+    const SOFT_EASE   = 'cubic-bezier(.2,.8,.2,1)';
+
+    function prefersReducedMotion(){
+      return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    }
+
+    function toggleSidebar(btn){
       const app = document.getElementById('app');
-      const btn = document.querySelector('.toggle');
       const isCollapsed = app.classList.toggle('collapsed');
       btn.setAttribute('aria-expanded', String(!isCollapsed));
     }
 
-    function toggleSub(el, id) {
-      const expanded = el.getAttribute('aria-expanded') === 'true';
-      el.setAttribute('aria-expanded', String(!expanded));
-      const sub = document.getElementById(id);
-      if (sub) sub.style.display = expanded ? 'none' : 'block';
+    function toggleAccordion(headerBtn, panelId){
+      const panel = document.getElementById(panelId);
+      const isOpen = headerBtn.getAttribute('aria-expanded') === 'true';
+      headerBtn.setAttribute('aria-expanded', String(!isOpen));
+
+      if (prefersReducedMotion()){
+        panel.style.height = isOpen ? '0px' : 'auto';
+        if (!isOpen){
+          // marcar visíveis
+          panel.querySelectorAll('.row').forEach(r => { r.style.opacity = 1; r.style.transform = 'none'; });
+        }
+        return;
+      }
+
+      // Medir conteúdo
+      const startHeight = panel.offsetHeight;
+      panel.style.height = 'auto';
+      const endHeight = panel.scrollHeight;
+      // Reset para animar a partir do valor atual
+      panel.style.height = startHeight + 'px';
+
+      // Stagger das linhas (reveal)
+      const rows = Array.from(panel.querySelectorAll('.row'));
+      if (!isOpen){
+        rows.forEach((row, i) => {
+          row.animate(
+            [
+              { opacity: 0, transform: 'translateY(-8px)' },
+              { opacity: 1, transform: 'translateY(0)' }
+            ],
+            { duration: 240, delay: 25*i, easing: SOFT_EASE, fill: 'forwards' }
+          );
+        });
+      }
+
+      // Anima a altura (com leve elasticidade na abertura)
+      const anim = panel.animate(
+        [{ height: startHeight + 'px' }, { height: (isOpen ? 0 : endHeight) + 'px' }],
+        { duration: isOpen ? 240 : 320, easing: isOpen ? SOFT_EASE : SPRING_EASE, fill: 'forwards' }
+      );
+
+      anim.onfinish = () => {
+        if (isOpen){
+          panel.style.height = '0px';
+          // esconder rows visualmente para próxima abertura
+          rows.forEach(r => { r.style.opacity = 0; r.style.transform = 'translateY(-6px)'; });
+        } else {
+          panel.style.height = 'auto';
+        }
+      };
     }
 
-    function getNomeSelecionado() {
+    function getNomeSelecionado(){
       const sel = document.querySelector('input[name="filtro-nome"]:checked');
       return sel ? sel.value : null;
     }
 
-    function buildEmbedUrl(base, paramsObj) {
-      // monta params como JSON e injeta em ?params=
+    function buildEmbedUrl(base, paramsObj){
       const url = new URL(base);
       url.searchParams.set('params', JSON.stringify(paramsObj));
       return url.toString();
     }
 
-    function aplicarFiltro() {
+    function aplicarFiltro(){
       const nome = getNomeSelecionado();
-      const iframe = document.getElementById('reportFrame');
-      if (!nome) {
+      if (!nome){
         alert('Selecione um nome para filtrar.');
         return;
       }
-      // Envia como ARRAY, para ficar no mesmo padrão do exemplo dado:
-      // {"ds56.param_responsaveis":["FABIO AMARAL"]}
-      const paramsObj = {};
-      paramsObj[PARAM_NAME] = [nome];
+      const value = SEND_AS_ARRAY ? [nome] : nome;
+      const paramsObj = { [PARAM_NAME]: value };
 
-      iframe.src = buildEmbedUrl(BASE_EMBED_URL, paramsObj);
+      const iframe = document.getElementById('reportFrame');
+      const finalUrl = buildEmbedUrl(BASE_EMBED_URL, paramsObj);
+      iframe.src = finalUrl;
     }
 
-    function limparFiltro() {
+    function limparFiltro(){
       document.querySelectorAll('input[name="filtro-nome"]').forEach(r => r.checked = false);
       const iframe = document.getElementById('reportFrame');
       iframe.src = BASE_EMBED_URL;
