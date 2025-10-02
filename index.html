@@ -45,10 +45,6 @@
     .brand{
       display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.2px
     }
-    .brand img{
-      width:28px; height:28px; border-radius:8px; display:block;
-      box-shadow: 0 4px 12px rgb(0 0 0 / .25);
-    }
     .brand .title{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
 
     .toggle{
@@ -88,6 +84,13 @@
       padding-left: 18px;
       will-change: height;
     }
+    /* indentação extra para níveis aninhados */
+    .submenu .submenu{
+      margin-left: 12px;
+      border-left-style: solid;
+      border-left-color: rgb(var(--stroke)/.5);
+    }
+
     .submenu .row{
       display:flex; align-items:center; gap:10px;
       padding:8px 6px; border-radius:10px;
@@ -96,9 +99,12 @@
     }
     .submenu .row:hover{ background: rgb(30 41 59 / .55) }
     .submenu input[type="radio"]{ accent-color: rgb(var(--accent)) }
+
     .submenu .links a{
       display:flex; align-items:center; gap:8px;
       padding:8px 6px; border-radius:10px; text-decoration:none; color: rgb(var(--ink));
+      transform: translateY(-6px);
+      opacity:0;
     }
     .submenu .links a:hover{ background: rgb(30 41 59 / .55) }
 
@@ -129,8 +135,7 @@
     /* Loading overlay (UX) */
     .loading{
       position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
-      background: rgba(0,0,0,.25); backdrop-filter: blur(2px); font-weight:700;
-      letter-spacing:.2px;
+      background: rgba(0,0,0,.25); backdrop-filter: blur(2px); font-weight:700; letter-spacing:.2px;
     }
 
     @media (prefers-reduced-motion: reduce){
@@ -142,7 +147,6 @@
   <div id="app" class="app">
     <aside class="sidebar" role="navigation" aria-label="Menu lateral">
       <div class="brand">
-        <img src="https://i.imgur.com/6cO3tY8.png" alt="Logo">
         <span class="title">Gestão Training BI</span>
       </div>
 
@@ -180,18 +184,26 @@
           <span class="icon">🔎</span><span class="label">Filtros</span><span class="caret">▾</span>
         </button>
         <div id="sub-filtros" class="submenu" role="region" aria-label="Filtros">
-          <fieldset style="border:0; padding:0; margin:0">
-            <legend class="sr-only" style="position:absolute;left:-9999px">Responsáveis</legend>
-            <label class="row"><input type="radio" name="filtro-nome" value="FABIO AMARAL"><span class="label">FABIO AMARAL</span></label>
-            <label class="row"><input type="radio" name="filtro-nome" value="GABRIEL SOUZA"><span class="label">GABRIEL SOUZA</span></label>
-            <label class="row"><input type="radio" name="filtro-nome" value="MARCELO ALFREDO"><span class="label">MARCELO ALFREDO</span></label>
-            <label class="row"><input type="radio" name="filtro-nome" value="ROMULO SALLA"><span class="label">ROMULO SALLA</span></label>
-            <label class="row"><input type="radio" name="filtro-nome" value="TAINA SANTORO"><span class="label">TAINA SANTORO</span></label>
-          </fieldset>
-          <div class="actions">
-            <button class="btn" type="button" onclick="aplicarFiltro()">Filtrar</button>
-            <button class="btn secondary" type="button" onclick="limparFiltro()">Limpar</button>
+          <!-- Subitem: Responsáveis (NÍVEL INTERNO) -->
+          <button class="item" type="button" aria-expanded="true" aria-controls="sub-filtros-resp" onclick="toggleAccordion(this, 'sub-filtros-resp')">
+            <span class="icon">👥</span><span class="label">Responsáveis</span><span class="caret">▾</span>
+          </button>
+          <div id="sub-filtros-resp" class="submenu" role="region" aria-label="Responsáveis">
+            <fieldset style="border:0; padding:0; margin:0">
+              <legend class="sr-only" style="position:absolute;left:-9999px">Responsáveis</legend>
+              <label class="row"><input type="radio" name="filtro-nome" value="FABIO AMARAL"><span class="label">FABIO AMARAL</span></label>
+              <label class="row"><input type="radio" name="filtro-nome" value="GABRIEL SOUZA"><span class="label">GABRIEL SOUZA</span></label>
+              <label class="row"><input type="radio" name="filtro-nome" value="MARCELO ALFREDO"><span class="label">MARCELO ALFREDO</span></label>
+              <label class="row"><input type="radio" name="filtro-nome" value="ROMULO SALLA"><span class="label">ROMULO SALLA</span></label>
+              <label class="row"><input type="radio" name="filtro-nome" value="TAINA SANTORO"><span class="label">TAINA SANTORO</span></label>
+            </fieldset>
+            <div class="actions">
+              <button class="btn" type="button" onclick="aplicarFiltro()">Filtrar</button>
+              <button class="btn secondary" type="button" onclick="limparFiltro()">Limpar</button>
+            </div>
           </div>
+
+          <!-- Futuramente, adicione novos subitens aqui (ex.: Período, Região, etc.) -->
         </div>
       </nav>
     </aside>
@@ -213,7 +225,7 @@
     /* ============ CONFIG ============ */
     const PARAM_NAME = "ds56.param_responsaveis";
     const BASE_EMBED_URL = "https://lookerstudio.google.com/embed/reporting/05f69128-cdfd-4e58-b570-1a6a54a25830/page/p_ronkgricwd";
-    const SEND_AS_ARRAY = true; // segue o padrão do seu exemplo
+    const SEND_AS_ARRAY = true; // mantém padrão consistente
     /* ================================= */
 
     const SPRING_EASE = 'cubic-bezier(.34,1.56,.64,1)';
@@ -274,7 +286,7 @@
       };
     }
 
-    // Abrir todos por padrão (conforme solicitado)
+    // Abrir um painel manualmente (sem animação)
     function openAccordion(panelId, headerSelector){
       const panel = document.getElementById(panelId);
       const header = document.querySelector(headerSelector);
@@ -298,7 +310,7 @@
     function aplicarFiltro(){
       const nome = getNomeSelecionado();
       if (!nome){
-        alert('Selecione um nome para filtrar.');
+        alert('Selecione um responsável para filtrar.');
         return;
       }
       const value = SEND_AS_ARRAY ? [nome] : nome;
@@ -331,10 +343,11 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-      // abrir todos os accordions
+      // abrir todos os accordions (Daily, Reports, Filtros e o subitem Responsáveis)
       openAccordion('sub-daily',   'button[aria-controls="sub-daily"]');
       openAccordion('sub-reports', 'button[aria-controls="sub-reports"]');
       openAccordion('sub-filtros', 'button[aria-controls="sub-filtros"]');
+      openAccordion('sub-filtros-resp', 'button[aria-controls="sub-filtros-resp"]');
 
       // loading overlay control
       const iframe = document.getElementById('reportFrame');
