@@ -3,26 +3,26 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Menu (Filtros com “efeito Apple”) + Looker embed</title>
+  <title>Gestão Training BI</title>
   <style>
     :root{
       --sidebar-w: 280px;
       --sidebar-w-collapsed: 76px;
-      --bg: 12 16 32;       /* #0b1020 */
       --ink: 229 231 235;   /* #e5e7eb */
       --muted: 148 163 184; /* #94a3b8 */
       --accent: 34 197 94;  /* #22c55e */
       --stroke: 31 41 55;   /* #1f2937 */
+      --bg: 12 16 32;       /* #0b1020 */
     }
     *{ box-sizing: border-box }
     html,body{ height:100%; margin:0 }
     body{
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Arial;
       color: rgb(var(--ink));
-      background: rgb(11 16 32);
+      background: rgb(var(--bg));
     }
 
-    /* ----- LAYOUT -------------------------------------------------------- */
+    /* ===== Layout ===== */
     .app{
       display:grid;
       grid-template-columns: var(--sidebar-w) 1fr;
@@ -32,18 +32,24 @@
     }
     .app.collapsed{ grid-template-columns: var(--sidebar-w-collapsed) 1fr }
 
-    /* ----- SIDEBAR (vidro + elevação sutil) ----------------------------- */
+    /* ===== Sidebar (glass + shadow) ===== */
     .sidebar{
       padding:16px 12px;
-      display:flex; flex-direction:column; gap:12px;
+      display:flex; flex-direction:column; gap:14px;
       border-right:1px solid rgb(var(--stroke)/.6);
       background: linear-gradient(180deg, rgb(15 23 42/.55), rgb(17 24 39/.55));
       backdrop-filter: blur(10px) saturate(140%);
       -webkit-backdrop-filter: blur(10px) saturate(140%);
       box-shadow: 0 10px 30px rgb(0 0 0 / .25);
     }
-    .brand{ display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.2px }
-    .dot{ width:12px; height:12px; border-radius:999px; background: rgb(var(--accent)) }
+    .brand{
+      display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:.2px
+    }
+    .brand img{
+      width:28px; height:28px; border-radius:8px; display:block;
+      box-shadow: 0 4px 12px rgb(0 0 0 / .25);
+    }
+    .brand .title{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
 
     .toggle{
       width:100%; border:0; cursor:pointer;
@@ -55,40 +61,46 @@
     }
     .toggle:hover{ background: rgb(40 50 70 / .9) }
     .toggle:active{ transform: scale(.985) }
+    .toggle:focus-visible{ outline: 2px solid rgb(var(--accent)); outline-offset: 2px }
 
-    .hint{ font-size:12px; color: rgb(var(--muted)) }
-
-    /* ----- MENU ITEMS ---------------------------------------------------- */
-    .menu{ display:grid; gap:6px; margin-top:2px }
+    /* ===== Menu ===== */
+    .menu{ display:grid; gap:8px; margin-top:2px }
     .menu a, .menu button.item{
       display:grid; grid-template-columns: 28px 1fr 22px; align-items:center; gap:10px;
-      padding:10px 10px; border-radius:12px; border:0; cursor:pointer;
+      padding:10px; border-radius:12px; border:0; cursor:pointer;
       background: transparent; color: rgb(var(--ink)); text-decoration:none;
       transition: background .2s ease, transform .12s ease;
     }
     .menu a:hover, .menu button.item:hover{ background: rgb(31 41 55 / .6) }
     .menu a:active, .menu button.item:active{ transform: scale(.985) }
+    .menu a:focus-visible, .menu button.item:focus-visible{ outline: 2px solid rgb(var(--accent)); outline-offset: 2px }
     .icon{ text-align:center; font-size:18px }
     .label{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
     .caret{ opacity:.7; transition: transform .28s cubic-bezier(.2,.8,.2,1) }
+    .item[aria-expanded="true"] .caret{ transform: rotate(180deg) }
 
-    /* ----- ACCORDION (Apple-like) --------------------------------------- */
+    /* ===== Accordion "Apple-like" ===== */
     .submenu{
       overflow: hidden;
-      height: 0;            /* fechado por padrão */
+      height: 0;                 /* fechado por padrão; abriremos via JS */
       border-left: 1px dashed rgb(var(--stroke)/.6);
       margin-left: 14px;
       padding-left: 18px;
       will-change: height;
     }
-    .row{
+    .submenu .row{
       display:flex; align-items:center; gap:10px;
       padding:8px 6px; border-radius:10px;
       transform: translateY(-6px);
       opacity:0;
     }
-    .row:hover{ background: rgb(30 41 59 / .55) }
+    .submenu .row:hover{ background: rgb(30 41 59 / .55) }
     .submenu input[type="radio"]{ accent-color: rgb(var(--accent)) }
+    .submenu .links a{
+      display:flex; align-items:center; gap:8px;
+      padding:8px 6px; border-radius:10px; text-decoration:none; color: rgb(var(--ink));
+    }
+    .submenu .links a:hover{ background: rgb(30 41 59 / .55) }
 
     .actions{ display:flex; gap:8px; margin:8px 0 12px }
     .btn{
@@ -100,67 +112,92 @@
     }
     .btn:hover{ filter: brightness(1.05) }
     .btn:active{ transform: translateY(1px) }
+    .btn:focus-visible{ outline: 2px solid rgb(var(--accent)); outline-offset: 2px }
     .btn.secondary{ background: rgb(31 41 55); color: rgb(var(--ink)); box-shadow:none }
 
-    /* Estado visual do cabeçalho do accordion */
-    .item[aria-expanded="true"] .caret{ transform: rotate(180deg) }
-
-    /* Colapso global */
+    /* Colapso global da sidebar */
     .app.collapsed .label,
     .app.collapsed .caret,
     .app.collapsed .submenu{ display:none !important }
     .app.collapsed .menu{ gap:10px }
     .app.collapsed .menu a, .app.collapsed .menu button.item{ grid-template-columns:1fr; justify-items:center }
 
-    /* ----- STAGE (relatório) ------------------------------------------- */
+    /* ===== Stage (relatório) ===== */
     .stage{ position:relative; height:100%; background: rgb(var(--bg)) }
     .report-frame{ position:absolute; inset:0; width:100%; height:100%; border:0; background: rgb(var(--bg)) }
 
-    /* Acessibilidade: reduzir movimento */
+    /* Loading overlay (UX) */
+    .loading{
+      position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+      background: rgba(0,0,0,.25); backdrop-filter: blur(2px); font-weight:700;
+      letter-spacing:.2px;
+    }
+
     @media (prefers-reduced-motion: reduce){
       .caret, .toggle, .menu a, .menu button.item{ transition:none }
     }
-    small.note{ color: rgb(var(--muted)); display:block; margin-top:6px }
   </style>
 </head>
 <body>
   <div id="app" class="app">
     <aside class="sidebar" role="navigation" aria-label="Menu lateral">
-      <div class="brand"><span class="dot"></span><span class="label">Menu</span></div>
+      <div class="brand">
+        <img src="https://i.imgur.com/6cO3tY8.png" alt="Logo">
+        <span class="title">Gestão Training BI</span>
+      </div>
 
       <button class="toggle" type="button" onclick="toggleSidebar(this)" aria-expanded="true">
-        ☰ <span class="label">Colapsar/Expandir</span>
+        ☰ <span class="label">Recolher/Expandir</span>
       </button>
 
-      <div class="hint"><span class="label">Filtros com animação suave</span></div>
-
       <nav class="menu">
-        <a href="#home"><span class="icon">🏠</span><span class="label">Home</span><span class="caret"></span></a>
+        <!-- ===== DAILY ===== -->
+        <button class="item" type="button" aria-expanded="true" aria-controls="sub-daily" onclick="toggleAccordion(this, 'sub-daily')">
+          <span class="icon">🗓️</span><span class="label">Daily</span><span class="caret">▾</span>
+        </button>
+        <div id="sub-daily" class="submenu" role="region" aria-label="Daily">
+          <div class="links">
+            <a href="#projetos">📁 <span class="label">Projetos</span></a>
+            <a href="#tickets">🎫 <span class="label">Tickets</span></a>
+            <a href="#backlog">🧱 <span class="label">Backlog</span></a>
+          </div>
+        </div>
 
-        <!-- ====== Filtro (Accordion) ====== -->
-        <button class="item" type="button" aria-expanded="false" aria-controls="sub-filtros" onclick="toggleAccordion(this, 'sub-filtros')">
+        <!-- ===== REPORTS ===== -->
+        <button class="item" type="button" aria-expanded="true" aria-controls="sub-reports" onclick="toggleAccordion(this, 'sub-reports')">
+          <span class="icon">📊</span><span class="label">Reports</span><span class="caret">▾</span>
+        </button>
+        <div id="sub-reports" class="submenu" role="region" aria-label="Reports">
+          <div class="links">
+            <a href="#review">🧾 <span class="label">Review</span></a>
+            <a href="#monthly">📅 <span class="label">Monthly</span></a>
+            <a href="#quarter">📆 <span class="label">Quarter</span></a>
+          </div>
+        </div>
+
+        <!-- ===== FILTROS ===== -->
+        <button class="item" type="button" aria-expanded="true" aria-controls="sub-filtros" onclick="toggleAccordion(this, 'sub-filtros')">
           <span class="icon">🔎</span><span class="label">Filtros</span><span class="caret">▾</span>
         </button>
-
         <div id="sub-filtros" class="submenu" role="region" aria-label="Filtros">
-          <label class="row"><input type="radio" name="filtro-nome" value="FABIO AMARAL"><span class="label">FABIO AMARAL</span></label>
-          <label class="row"><input type="radio" name="filtro-nome" value="GABRIEL SOUZA"><span class="label">GABRIEL SOUZA</span></label>
-          <label class="row"><input type="radio" name="filtro-nome" value="MARCELO ALFREDO"><span class="label">MARCELO ALFREDO</span></label>
-          <label class="row"><input type="radio" name="filtro-nome" value="ROMULO SALLA"><span class="label">ROMULO SALLA</span></label>
-          <label class="row"><input type="radio" name="filtro-nome" value="TAINA SANTORO"><span class="label">TAINA SANTORO</span></label>
-
+          <fieldset style="border:0; padding:0; margin:0">
+            <legend class="sr-only" style="position:absolute;left:-9999px">Responsáveis</legend>
+            <label class="row"><input type="radio" name="filtro-nome" value="FABIO AMARAL"><span class="label">FABIO AMARAL</span></label>
+            <label class="row"><input type="radio" name="filtro-nome" value="GABRIEL SOUZA"><span class="label">GABRIEL SOUZA</span></label>
+            <label class="row"><input type="radio" name="filtro-nome" value="MARCELO ALFREDO"><span class="label">MARCELO ALFREDO</span></label>
+            <label class="row"><input type="radio" name="filtro-nome" value="ROMULO SALLA"><span class="label">ROMULO SALLA</span></label>
+            <label class="row"><input type="radio" name="filtro-nome" value="TAINA SANTORO"><span class="label">TAINA SANTORO</span></label>
+          </fieldset>
           <div class="actions">
             <button class="btn" type="button" onclick="aplicarFiltro()">Filtrar</button>
             <button class="btn secondary" type="button" onclick="limparFiltro()">Limpar</button>
           </div>
-          <small class="note">Envia para o embed: <code>ds56.param_responsaveis</code> como array (ex.: <code>["FABIO AMARAL"]</code>).</small>
         </div>
-        <!-- ====== /Filtro ====== -->
-
       </nav>
     </aside>
 
     <section class="stage" aria-label="Área do relatório">
+      <div id="loading" class="loading">Carregando…</div>
       <iframe
         id="reportFrame"
         class="report-frame"
@@ -173,14 +210,13 @@
   </div>
 
   <script>
-    /* ================== CONFIG ================== */
+    /* ============ CONFIG ============ */
     const PARAM_NAME = "ds56.param_responsaveis";
     const BASE_EMBED_URL = "https://lookerstudio.google.com/embed/reporting/05f69128-cdfd-4e58-b570-1a6a54a25830/page/p_ronkgricwd";
-    const SEND_AS_ARRAY = true; // mantém o padrão do seu exemplo
-    /* ============================================ */
+    const SEND_AS_ARRAY = true; // segue o padrão do seu exemplo
+    /* ================================= */
 
-    // Apple-like accordion: anima altura + “reveal” dos itens com leve elasticidade
-    const SPRING_EASE = 'cubic-bezier(.34,1.56,.64,1)';     // leve overshoot
+    const SPRING_EASE = 'cubic-bezier(.34,1.56,.64,1)';
     const SOFT_EASE   = 'cubic-bezier(.2,.8,.2,1)';
 
     function prefersReducedMotion(){
@@ -193,6 +229,19 @@
       btn.setAttribute('aria-expanded', String(!isCollapsed));
     }
 
+    function animateRowsReveal(panel){
+      const rows = Array.from(panel.querySelectorAll('.row, .links a'));
+      rows.forEach((row, i) => {
+        row.animate(
+          [
+            { opacity: 0, transform: 'translateY(-8px)' },
+            { opacity: 1, transform: 'translateY(0)' }
+          ],
+          { duration: 240, delay: 25*i, easing: SOFT_EASE, fill: 'forwards' }
+        );
+      });
+    }
+
     function toggleAccordion(headerBtn, panelId){
       const panel = document.getElementById(panelId);
       const isOpen = headerBtn.getAttribute('aria-expanded') === 'true';
@@ -200,49 +249,39 @@
 
       if (prefersReducedMotion()){
         panel.style.height = isOpen ? '0px' : 'auto';
-        if (!isOpen){
-          // marcar visíveis
-          panel.querySelectorAll('.row').forEach(r => { r.style.opacity = 1; r.style.transform = 'none'; });
-        }
+        if (!isOpen){ panel.querySelectorAll('.row,.links a').forEach(r => { r.style.opacity = 1; r.style.transform = 'none'; }); }
         return;
       }
 
-      // Medir conteúdo
       const startHeight = panel.offsetHeight;
       panel.style.height = 'auto';
       const endHeight = panel.scrollHeight;
-      // Reset para animar a partir do valor atual
       panel.style.height = startHeight + 'px';
 
-      // Stagger das linhas (reveal)
-      const rows = Array.from(panel.querySelectorAll('.row'));
-      if (!isOpen){
-        rows.forEach((row, i) => {
-          row.animate(
-            [
-              { opacity: 0, transform: 'translateY(-8px)' },
-              { opacity: 1, transform: 'translateY(0)' }
-            ],
-            { duration: 240, delay: 25*i, easing: SOFT_EASE, fill: 'forwards' }
-          );
-        });
-      }
+      if (!isOpen) animateRowsReveal(panel);
 
-      // Anima a altura (com leve elasticidade na abertura)
       const anim = panel.animate(
         [{ height: startHeight + 'px' }, { height: (isOpen ? 0 : endHeight) + 'px' }],
         { duration: isOpen ? 240 : 320, easing: isOpen ? SOFT_EASE : SPRING_EASE, fill: 'forwards' }
       );
-
       anim.onfinish = () => {
         if (isOpen){
           panel.style.height = '0px';
-          // esconder rows visualmente para próxima abertura
-          rows.forEach(r => { r.style.opacity = 0; r.style.transform = 'translateY(-6px)'; });
+          panel.querySelectorAll('.row,.links a').forEach(r => { r.style.opacity = 0; r.style.transform = 'translateY(-6px)'; });
         } else {
           panel.style.height = 'auto';
         }
       };
+    }
+
+    // Abrir todos por padrão (conforme solicitado)
+    function openAccordion(panelId, headerSelector){
+      const panel = document.getElementById(panelId);
+      const header = document.querySelector(headerSelector);
+      if (!panel || !header) return;
+      header.setAttribute('aria-expanded', 'true');
+      panel.style.height = 'auto';
+      panel.querySelectorAll('.row,.links a').forEach(r => { r.style.opacity = 1; r.style.transform = 'none'; });
     }
 
     function getNomeSelecionado(){
@@ -264,7 +303,6 @@
       }
       const value = SEND_AS_ARRAY ? [nome] : nome;
       const paramsObj = { [PARAM_NAME]: value };
-
       const iframe = document.getElementById('reportFrame');
       const finalUrl = buildEmbedUrl(BASE_EMBED_URL, paramsObj);
       iframe.src = finalUrl;
@@ -275,6 +313,40 @@
       const iframe = document.getElementById('reportFrame');
       iframe.src = BASE_EMBED_URL;
     }
+
+    // Boas práticas: overlay de loading + sincronizar UI com o params atual do iframe
+    function syncUIFromIframe(){
+      const iframe = document.getElementById('reportFrame');
+      try{
+        const url = new URL(iframe.src);
+        const raw = url.searchParams.get('params');
+        if (!raw) return;
+        const params = JSON.parse(raw);
+        const val = params?.[PARAM_NAME];
+        const nome = Array.isArray(val) ? val[0] : val;
+        if (!nome) return;
+        const radio = document.querySelector(`input[name="filtro-nome"][value="${CSS.escape(nome)}"]`);
+        if (radio) radio.checked = true;
+      }catch(e){ /* silencioso */ }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // abrir todos os accordions
+      openAccordion('sub-daily',   'button[aria-controls="sub-daily"]');
+      openAccordion('sub-reports', 'button[aria-controls="sub-reports"]');
+      openAccordion('sub-filtros', 'button[aria-controls="sub-filtros"]');
+
+      // loading overlay control
+      const iframe = document.getElementById('reportFrame');
+      const loading = document.getElementById('loading');
+      iframe.addEventListener('load', () => {
+        loading?.remove();
+        syncUIFromIframe();
+      });
+
+      // se a página carregar com params já presentes no src:
+      syncUIFromIframe();
+    });
   </script>
 </body>
 </html>
