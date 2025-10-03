@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Carrossel estilo Netflix – Demo</title>
+  <style>
+    :root{
+      --bg:#0f0f0f; --text:#fff; --muted:#b3b3b3; --card:#1a1a1a; --accent:#e50914;
+      --rail-gap: .75rem; --page-pad: clamp(12px, 3vw, 32px);
+      --card-radius: 12px; --row-title: clamp(16px, 1.4vw + 8px, 22px);
+      --card-height: clamp(130px, 26vh, 220px);
+      --btn-size: clamp(36px, 3.5vw, 52px);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;background:var(--bg);color:var(--text);font:16px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif;}
+
+    header{
+      display:flex;align-items:center;gap:10px;padding:12px var(--page-pad);
+      position:sticky;top:0;background:linear-gradient(180deg, rgba(15,15,15,.95), rgba(15,15,15,.75)); backdrop-filter:saturate(1.2) blur(6px); z-index:3;
+    }
+    .brand{font-weight:800;letter-spacing:1px;color:var(--accent)}
+
+    main{display:grid;gap:28px;padding:12px var(--page-pad) 48px}
+
+    .row{position:relative}
+    .row h2{margin:0 0 12px;font-size:var(--row-title)}
+
+    /* RAIL */
+    .rail-wrap{position:relative}
+    .rail{display:grid; grid-auto-flow:column; grid-auto-columns: clamp(180px, 16vw, 320px); gap:var(--rail-gap);
+      overflow-x:auto; overscroll-behavior-x:contain; scroll-snap-type:x mandatory; scroll-padding-left: var(--page-pad);
+      padding-bottom:8px; scrollbar-width:none; -ms-overflow-style:none;
+    }
+    .rail::-webkit-scrollbar{display:none}
+
+    .card{ position:relative; height:var(--card-height); background:var(--card); border-radius:var(--card-radius); overflow:hidden; scroll-snap-align:start; cursor:pointer;}
+    .card img{width:100%; height:100%; object-fit:cover; display:block; transition:transform .35s ease}
+    .card:focus{ outline:2px solid var(--accent); outline-offset:2px}
+    .card .badge{position:absolute; top:8px; left:8px; background:rgba(0,0,0,.7); padding:.25rem .5rem; border-radius:999px; font-size:12px}
+
+    /* Hover grow on pointer devices */
+    @media (hover:hover){
+      .rail:hover .card{filter:brightness(.9)}
+      .card:hover{ transform:translateY(-2px); filter:none; box-shadow:0 10px 24px rgba(0,0,0,.45)}
+      .card:hover img{ transform:scale(1.05) }
+    }
+
+    /* EDGE FADES */
+    .edge{position:absolute; top:0; bottom:0; width:8vw; pointer-events:none; z-index:2}
+    .edge.left{left:calc(var(--page-pad) * -1); background:linear-gradient(90deg, var(--bg), transparent)}
+    .edge.right{right:calc(var(--page-pad) * -1); background:linear-gradient(270deg, var(--bg), transparent)}
+
+    /* ARROWS */
+    .nav{position:absolute; inset:0; display:flex; justify-content:space-between; align-items:center; pointer-events:none}
+    .btn{pointer-events:auto; display:grid; place-items:center; width:var(--btn-size); height:var(--btn-size); border:none; border-radius:999px; background:rgba(0,0,0,.6); color:white; cursor:pointer; backdrop-filter: blur(2px);}
+    .btn[disabled]{opacity:.35; cursor:default}
+
+    /* Touch drag hint */
+    .hint{color:var(--muted); font-size:13px; margin-top:6px}
+
+    /* Demo footer */
+    footer{color:var(--muted); text-align:center; padding:24px}
+  </style>
+</head>
+<body>
+  <header>
+    <span class="brand">NETFLIX‑LIKE</span>
+    <span style="opacity:.7">Carrossel em HTML/CSS/JS</span>
+  </header>
+
+  <main>
+    <section class="row" data-row>
+      <h2>Continuar assistindo</h2>
+      <div class="rail-wrap">
+        <div class="edge left"></div>
+        <div class="edge right"></div>
+        <div class="nav" aria-hidden="true">
+          <button class="btn prev" aria-label="Anterior">◀</button>
+          <button class="btn next" aria-label="Próximo">▶</button>
+        </div>
+        <div class="rail" tabindex="0">
+          <!-- Itens de exemplo -->
+          <!-- Use imagens reais nos seus cards; aqui usamos picsum para placeholder -->
+        </div>
+      </div>
+      <p class="hint">Dica: arraste no touch, use a roda do mouse (Shift + roda = horizontal) ou as setas.</p>
+    </section>
+
+    <section class="row" data-row>
+      <h2>Em alta</h2>
+      <div class="rail-wrap">
+        <div class="edge left"></div>
+        <div class="edge right"></div>
+        <div class="nav" aria-hidden="true">
+          <button class="btn prev" aria-label="Anterior">◀</button>
+          <button class="btn next" aria-label="Próximo">▶</button>
+        </div>
+        <div class="rail" tabindex="0"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>Feito com scroll-snap + scrollBy() para UX suave. Sem dependências.</footer>
+
+  <script>
+    // Util: gerar cards placeholder
+    function makeCards(count, seedStart=1){
+      const frag = document.createDocumentFragment();
+      for(let i=0;i<count;i++){
+        const card = document.createElement('button');
+        card.className = 'card';
+        card.setAttribute('aria-label', `Abrir item ${i+1}`);
+        card.innerHTML = `
+          <img loading="lazy" src="https://picsum.photos/seed/${seedStart+i}/600/340" alt="Poster aleatório"/>
+          <span class="badge">HD</span>
+        `;
+        frag.appendChild(card);
+      }
+      return frag;
+    }
+
+    // Preenche as duas linhas
+    document.querySelectorAll('.row .rail').forEach((rail, idx)=>{
+      rail.appendChild(makeCards(20, idx*100));
+    });
+
+    // Comportamento de navegação por seta, teclado e drag
+    document.querySelectorAll('[data-row]').forEach((row)=>{
+      const rail = row.querySelector('.rail');
+      const prev = row.querySelector('.prev');
+      const next = row.querySelector('.next');
+
+      function getStep(){
+        // quantos cards cabem na viewport? role por um "página"
+        const card = rail.querySelector('.card');
+        const cardWidth = card ? card.getBoundingClientRect().width : 300;
+        const gap = parseFloat(getComputedStyle(rail).gap) || 0;
+        const viewport = rail.getBoundingClientRect().width;
+        // Ex: avance 0.9 da largura visível (quase uma tela)
+        const step = Math.max(cardWidth + gap, viewport * 0.9);
+        return step;
+      }
+
+      function updateButtons(){
+        const max = rail.scrollWidth - rail.clientWidth - 1; // tolerância
+        prev.disabled = rail.scrollLeft <= 0;
+        next.disabled = rail.scrollLeft >= max;
+      }
+
+      updateButtons();
+      rail.addEventListener('scroll', updateButtons, {passive:true});
+      window.addEventListener('resize', updateButtons);
+
+      prev.addEventListener('click', ()=> rail.scrollBy({left: -getStep(), behavior:'smooth'}));
+      next.addEventListener('click', ()=> rail.scrollBy({left:  getStep(), behavior:'smooth'}));
+
+      // Teclado: setas esquerda/direita quando o rail está focado
+      rail.addEventListener('keydown', (e)=>{
+        if(e.key === 'ArrowRight'){ e.preventDefault(); next.click(); }
+        if(e.key === 'ArrowLeft'){  e.preventDefault(); prev.click(); }
+      });
+
+      // Arrastar com o mouse (drag-to-scroll)
+      let isDown=false, startX=0, startLeft=0;
+      rail.addEventListener('pointerdown', (e)=>{
+        isDown=true; startX=e.clientX; startLeft=rail.scrollLeft; rail.setPointerCapture(e.pointerId);
+      });
+      rail.addEventListener('pointermove', (e)=>{
+        if(!isDown) return; rail.scrollLeft = startLeft - (e.clientX - startX);
+      });
+      ['pointerup','pointercancel','pointerleave'].forEach(ev=> rail.addEventListener(ev, ()=>{ isDown=false; }));
+    });
+  </script>
+</body>
+</html>
